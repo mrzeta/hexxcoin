@@ -466,7 +466,7 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
             return QColor(64,64,255);
             break;
         case TransactionStatus::Offline:
-            return QColor(192,192,192);
+            return QIcon(":/icons/remove");
         case TransactionStatus::Unconfirmed:
             switch(wtx->status.depth)
             {

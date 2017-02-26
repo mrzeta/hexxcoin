@@ -3,14 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "addresstablemodel.h"
-
 #include "guiutil.h"
 #include "walletmodel.h"
-
 #include "wallet.h"
 #include "base58.h"
 
-#include <QFont>
 
 const QString AddressTableModel::Send = "S";
 const QString AddressTableModel::Receive = "R";
@@ -81,13 +78,16 @@ public:
             CWalletDB(wallet->strWalletFile).ListPubCoin(listPubcoin);
             BOOST_FOREACH(const CZerocoinEntry& item, listPubcoin)
             {
-                if(item.randomness != 0 && item.serialNumber != 0){
+                if(item.randomness != 0 && item.serialNumber != 0)
+				{
                     const std::string& pubCoin = item.value.GetHex();
                     const std::string& isUsed = item.IsUsed ? "Used" : "New";
+                    QString amts = QString::number(item.denomination);
+                    QString info1 = QString::fromStdString(isUsed) + " " + amts;
                     cachedAddressTable.append(AddressTableEntry(AddressTableEntry::Zerocoin,
-                                      QString::fromStdString(isUsed),
+                                      info1,
                                       QString::fromStdString(pubCoin)));
-                }
+				}
 
             }
 
@@ -493,6 +493,7 @@ void AddressTableModel::emitDataChanged(int idx)
 {
     emit dataChanged(index(idx, 0, QModelIndex()), index(idx, columns.length()-1, QModelIndex()));
 }
+
 
 bool AddressTableModel::zerocoinMint(string &stringError, string denomAmount)
 {

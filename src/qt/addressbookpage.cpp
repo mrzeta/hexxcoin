@@ -21,7 +21,6 @@
 #include <QMessageBox>
 #include <QMenu>
 
-
 AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddressBookPage),
@@ -51,7 +50,7 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
         connect(ui->tableView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(accept()));
         ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         ui->tableView->setFocus();
-        ui->exportButton->hide();     
+        ui->exportButton->hide();
         break;
     case ForEditing:
         ui->buttonBox->setVisible(false);
@@ -60,36 +59,37 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     switch(tab)
     {
     case SendingTab:
-        ui->labelExplanation->setText(tr("These are your zcoin addresses for sending payments. Always check the amount and the receiving address before sending coins."));
+        ui->labelExplanation->setText(tr("These are your Hexxcoin addresses for sending payments. Always check the amount and the receiving address before sending coins."));
         ui->deleteAddress->setVisible(true);
         ui->signMessage->setVisible(false);
-        ui->zerocoinAmount->setVisible(false);
+		ui->zerocoinAmount->setVisible(false);
         ui->zerocoinMintButton->setVisible(false);
         ui->zerocoinSpendButton->setVisible(false);
         break;
     case ReceivingTab:
-        ui->labelExplanation->setText(tr("These are your zcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you."));
+        ui->labelExplanation->setText(tr("These are your Hexxcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you."));
         ui->deleteAddress->setVisible(false);
         ui->signMessage->setVisible(true);
-        ui->zerocoinAmount->setVisible(false);
+		ui->zerocoinAmount->setVisible(false);
         ui->zerocoinMintButton->setVisible(false);
         ui->zerocoinSpendButton->setVisible(false);
         break;
     case ZerocoinTab:
-        ui->labelExplanation->setText(tr("These are your private coins from mint zerocoin operation, You can perform spend zerocoin operation to redeem zcoin back from Zerocoin."));
+        ui->labelExplanation->setText(tr("These are your private coins from mint zerocoin operation, You can perform spend zerocoin operation to redeem Hexxcoin back from Zerocoin."));
         ui->deleteAddress->setVisible(false);
         ui->signMessage->setVisible(false);
         ui->newAddress->setVisible(false);
         ui->copyAddress->setVisible(false);
         ui->verifyMessage->setVisible(false);
-        ui->zerocoinAmount->setVisible(true);
+		ui->zerocoinAmount->setVisible(true);
         ui->zerocoinMintButton->setVisible(true);
         ui->zerocoinSpendButton->setVisible(true);
-        ui->zerocoinAmount->addItem("1");
+		ui->zerocoinAmount->addItem("1");
         ui->zerocoinAmount->addItem("10");
-        ui->zerocoinAmount->addItem("25");
-        ui->zerocoinAmount->addItem("50");
         ui->zerocoinAmount->addItem("100");
+        ui->zerocoinAmount->addItem("250");
+		ui->zerocoinAmount->addItem("500");
+
 
     }
 
@@ -355,7 +355,7 @@ void AddressBookPage::selectionChanged()
             ui->verifyMessage->setVisible(false);
             break;
         case ZerocoinTab:
-            break;
+           break;
         }
         ui->copyAddress->setEnabled(true);
         ui->showQRCode->setEnabled(true);

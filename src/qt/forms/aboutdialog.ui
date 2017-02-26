@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>About Zcoin</string>
+   <string>About Hexxcoin</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
@@ -50,7 +50,7 @@
           <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="text">
-          <string>&lt;b&gt;Zcoin&lt;/b&gt; version</string>
+          <string>&lt;b&gt;Hexxcoin&lt;/b&gt; version</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -91,7 +91,7 @@
         <cursorShape>IBeamCursor</cursorShape>
        </property>
        <property name="text">
-        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright &amp;amp;copy; 2009-YYYY The Bitcoin developers&lt;/p&gt;&lt;p&gt;Copyright &amp;amp;copy; 2015-YYYY The Zcoin developers&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright &amp;amp;copy; 2009-YYYY The Bitcoin developers&lt;/p&gt;&lt;p&gt;Copyright &amp;amp;copy; 2015-YYYY The Hexxcoin developers&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -114,7 +114,7 @@ Distributed under the MIT/X11 software license, see the accompanying file COPYIN
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.
 
-The splash screen is copyrighted (c) 2017 by glitch, provided to us by the author under the Creative Commons Attribution 2.0 Generic license (http://creativecommons.org/licenses/by/2.0/)./</string>
+The splash screen is based on a photo (c) 2009 Ryan Loos, provided to us by the author under the Creative Commons Attribution 2.0 Generic license (http://creativecommons.org/licenses/by/2.0/). The original work can be found at http://www.flickr.com/photos/rh1n0/4157547404/</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
