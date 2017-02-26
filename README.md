@@ -1,73 +1,138 @@
-ZCoin integration/staging tree
-================================
 
-https://zcoin.io/
 
- Copyright (c) 2009 - 2016 Bitcoin Developers
- 
- Copyright (c) 2015 - 2017 ZCoin Developers
 
-What is ZCoin?
+# **Hexxcoin [HXX] swap 2017**
+
+Anonymous Zerocoin Protocol:
+https://en.wikipedia.org/wiki/Zerocoin
+
+Zerocoin  parameters RSA-2048 from RSA Factoring Challenge
+https://en.wikipedia.org/wiki/RSA_Factoring_Challenge
+
+Hexxcoin
 ----------------
+* Coin Suffix: HXX
+* Algorithm:lyra2rev2 from Zoin(not Zcoin)
+* Algo params: LYRA2(BEGIN(thash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, 330, 256)
+* Target Spacing: 150 Seconds
+* Retarget: every block
+* Confirmation: 6 Blocks
+* Maturity: 120 Blocks
+* Blocks: ~576 per day
+* Total Coins: 9,999,999 HXX
+* Min TX Fee: 0.0001 HXX
+* Block Size: 4MB
 
-ZCoin is the implementation of the Zerocoin protocol ( http://zerocoin.org ) guaranteeing true financial anonymity.
+Reward table
+----------------
+* 2 weeks / 1 coin
+* 1 week / 3.125 coins
+* 1 week / 6.25 coins
+* 2 weeks / 12.5 coins
+* 6 weeks / 6.25 coins
+* 6 weeks / 3.125 coins
+* 6 weeks / 1.5625 coins
+* And finally, 1 coin reward / block
 
- - 10 minute block targets
- - 21 million total coins
- - 50 coins per block
- - Retarget using BRNDF every 6 blocks
 
-For more information, as well as an immediately useable, binary version of
-the zcoin client sofware, see https://github.com/ZCoinOfficial/zcoin/releases.
+Net Parameters
+----------------
+* P2P Port=29100
+* RPC Port=29200
+* Client core=0.8.7
+* Clien name=hexx.exe
+* Conf file=hexx.conf
 
-License
--------
+Installation folder
+----------------
+* Windows: C:\Users\Username\AppData\Roaming\hexx
+* Mac:/Library/Application Support/hexx
+* Unix: /.hexx
 
-ZCoin is released under the terms of the MIT license. See `COPYING` for more
-information or see http://opensource.org/licenses/MIT.
 
-Development process
--------------------
 
-Developers work in their own trees, then submit pull requests when they think
-their feature or bug fix is ready.
 
-If it is a simple/trivial/non-controversial change, then one of the zcoin
-development team members simply pulls it.
+Debian/Ubuntu Linux Daemon Build Instructions
+================================================
 
-If it is a *more complicated or potentially controversial* change, then the patch
-submitter will be asked to start a discussion (if they haven't already) on the
-[Slack : ZCoin General Channel](https://zcoinofficial.slack.com). You can get invite from here http://invite.zcoin.io:3000/
+install dependencies:
 
-The patch will be accepted if there is broad consensus that it is a good thing.
-Developers should expect to rework and resubmit patches if the code doesn't
-match the project's coding conventions (see `doc/coding.txt`) or are
-controversial.
+    $ sudo apt-get update && sudo apt-get upgrade
+    $ sudo apt-get install git build-essential libssl-dev libdb5.3++-dev libminiupnpc-dev libboost-all-dev
 
-The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/zcoinofficial/zcoin/tags) are created
-regularly to indicate new official, stable release versions of ZCoin.
+build hexxd from git:
 
-Testing
--------
+    $ git clone https://github.com/hexxcointakeover/hexxcoin
+    $ cd hexxcoin/src && make -f makefile.unix
+   
+install and run hexxd daemon:
 
-### Automated Testing
+    $ sudo strip hexxd && sudo cp ~/hexxcoin/src/hexxd /usr/bin && cd ~/
+    $ hexxd
 
-Developers are strongly encouraged to write unit tests for new code, and to
-submit new unit tests for old code.
+here are a few commands, google for more.
 
-Unit tests for the core code are in `src/test/`. To compile and run them:
+    $ ./hexxd getinfo
+    $ ./hexxd getpeerinfo
+    $ ./hexxd getmininginfo
+    $ ./hexxd getnewaddresss
+	
+	
+if you need a swap memory
 
-    cd src; make -f makefile.unix test
+    $ free
+    $ dd if=/dev/zero of=/var/swap.img bs=1024k count=1000
+    $ mkswap /var/swap.img
+    $ swapon /var/swap.img	
+    $ free	
+	
+	
 
-Unit tests for the GUI code are in `src/qt/test/`. To compile and run them:
+Debian/Ubuntu Linux Qt4 Wallet Build Instructions
+================================================
 
-    qmake BITCOIN_QT_TEST=1 -o Makefile.test zcoin.pro
-    make -f Makefile.test
-    ./zcoin-qt_test
+update and install dependencies:
 
-Installation
--------
+    $ sudo apt-get update && sudo apt-get upgrade
+    $ sudo apt-get install git build-essential libssl-dev libdb5.3++-dev libminiupnpc-dev libboost-all-dev qt4-qmake libqt4-dev
+build Hexxcoin-qt from git:
 
-Please see details in Wiki section
+    $ git clone https://github.com/hexxcointakeover/hexxcoin
+    $ cd hexxcoin && qmake -qt=qt4 "RELEASE=1" Hexxcoin-qt.pro && make
+ 
+running the Hexx Qt wallet:
+
+    $ sudo ./hexx
+ 
+ Debian/Ubuntu Linux Qt5 Wallet Build Instructions
+================================================
+
+update and install dependencies:
+
+    $ sudo apt-get update && sudo apt-get upgrade
+    $ sudo apt-get install git build-essential libssl-dev libdb5.3++-dev libminiupnpc-dev libboost-all-dev qt5-qmake libqt5gui5 libqt5core5 libqt5dbus5 qttools5-dev-tools
+build Hexxcoin-qt from git:
+
+    $ git clone https://github.com/hexxcointakeover/hexxcoin
+    $ cd hexxcoin && qmake -qt=qt5 "RELEASE=1" Hexxcoin-qt.pro && make
+ 
+running the Hexx Qt wallet:
+
+    $ sudo ./hexx
+
+Example hexx.conf Configuration
+===================================================
+
+	addnode=node_ip
+	rpcallowip=127.0.0.1
+	rpcuser=MAKEUPYOUROWNUSERNAME
+	rpcpassword=MAKEUPYOUROWNPASSWORD
+	rpcport=29100
+	server=1
+	listen=1
+	port=29200
+	
+	
+
+
 
