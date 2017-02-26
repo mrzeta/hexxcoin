@@ -1268,7 +1268,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend,
         LOCK2(cs_main, cs_wallet);
         {
             nFeeRet = nTransactionFee;
-            loop
+            while(true)
             {
                 wtxNew.vin.clear();
                 wtxNew.vout.clear();
@@ -1401,8 +1401,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend,
 
                 // Check that enough fee is included
                 int64 nPayFee = nTransactionFee * (1 + (int64)nBytes / 1000);
-                bool fAllowFree = CTransaction::AllowFree(dPriority); // No free TXs in XZC
-               //bool fAllowFree = false;					// No free TXs in XZC
+                bool fAllowFree = CTransaction::AllowFree(dPriority); // No free TXs in HXX
+               //bool fAllowFree = false;					// No free TXs in HXX
                int64 nMinFee = wtxNew.GetMinFee(1, fAllowFree, GMF_SEND);
                if (nFeeRet < max(nPayFee, nMinFee))
                {
@@ -1435,15 +1435,15 @@ bool CWallet::CreateZerocoinMintModel(string &stringError, string denomAmount){
     }else if(denomAmount == "10"){
         denomination = libzerocoin::ZQ_GOLDWASSER;
         nAmount = roundint64(10 * COIN);
-    }else if(denomAmount == "25"){
-        denomination = libzerocoin::ZQ_RACKOFF;
-        nAmount = roundint64(25 * COIN);
-    }else if(denomAmount == "50"){
-        denomination = libzerocoin::ZQ_PEDERSEN;
-        nAmount = roundint64(50 * COIN);
     }else if(denomAmount == "100"){
-        denomination = libzerocoin::ZQ_WILLIAMSON;
+        denomination = libzerocoin::ZQ_RACKOFF;
         nAmount = roundint64(100 * COIN);
+    }else if(denomAmount == "250"){
+        denomination = libzerocoin::ZQ_PEDERSEN;
+        nAmount = roundint64(250 * COIN);
+    }else if(denomAmount == "500"){
+        denomination = libzerocoin::ZQ_WILLIAMSON;
+        nAmount = roundint64(500 * COIN);
     }else{
 
     }
@@ -1513,15 +1513,15 @@ bool CWallet::CreateZerocoinSpendModel(string &stringError, string denomAmount){
     }else if(denomAmount == "10"){
         denomination = libzerocoin::ZQ_GOLDWASSER;
         nAmount = roundint64(10 * COIN);
-    }else if(denomAmount == "25"){
-        denomination = libzerocoin::ZQ_RACKOFF;
-        nAmount = roundint64(25 * COIN);
-    }else if(denomAmount == "50"){
-        denomination = libzerocoin::ZQ_PEDERSEN;
-        nAmount = roundint64(50 * COIN);
     }else if(denomAmount == "100"){
-        denomination = libzerocoin::ZQ_WILLIAMSON;
+        denomination = libzerocoin::ZQ_RACKOFF;
         nAmount = roundint64(100 * COIN);
+    }else if(denomAmount == "250"){
+        denomination = libzerocoin::ZQ_PEDERSEN;
+        nAmount = roundint64(250 * COIN);
+    }else if(denomAmount == "500"){
+        denomination = libzerocoin::ZQ_WILLIAMSON;
+        nAmount = roundint64(500 * COIN);
     }else{
 
     }
@@ -1568,7 +1568,7 @@ bool CWallet::CreateZerocoinMintTransaction(const vector<pair<CScript, int64> >&
        LOCK2(cs_main, cs_wallet);
        {
            nFeeRet = nTransactionFee;
-           loop
+           while(true)
            {
                wtxNew.vin.clear();
                wtxNew.vout.clear();
@@ -1701,8 +1701,8 @@ bool CWallet::CreateZerocoinMintTransaction(const vector<pair<CScript, int64> >&
 
                // Check that enough fee is included
                int64 nPayFee = nTransactionFee * (1 + (int64)nBytes / 1000);
-           //    bool fAllowFree = CTransaction::AllowFree(dPriority); // No free TXs in XZC
-                bool fAllowFree = false;					// No free TXs in XZC
+           //    bool fAllowFree = CTransaction::AllowFree(dPriority); // No free TXs in HXX
+                bool fAllowFree = false;					// No free TXs in HXX
                 int64 nMinFee = wtxNew.GetMinFee(1, fAllowFree, GMF_SEND);
                 if (nFeeRet < max(nPayFee, nMinFee))
                 {

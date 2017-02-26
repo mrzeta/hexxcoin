@@ -9,7 +9,6 @@
 #include "txdb.h"
 #include "net.h"
 #include "init.h"
-#include "auxpow.h"
 #include "ui_interface.h"
 #include "checkqueue.h"
 #include <boost/algorithm/string/replace.hpp>
@@ -23,7 +22,7 @@ using namespace boost;
 using namespace numeric;
 
 #if defined(NDEBUG)
-# error "zcoin cannot be compiled without assertions."
+# error "Hexxcoin cannot be compiled without assertions."
 #endif
 
 #define ZEROCOIN_MODULUS   "25195908475657893494027183240048398571429282126204032027777137836043662020707595556264018525880784406918290641249515082189298559149176184502808489120072844992687392807287776735971418347270261896375014971824691165077613379859095700097330459748808428401797429100642458691817195118746121515172654632282216869987549182422433637259085141865462043576798423387184774447920739934236584823824281198163815010674810451660377306056201619676256133844143603833904414952634432190114657544454178424020924616515723350778707749817125772467962926386356373289912154831438167899885040445364023527381951378636564391212010397122822120720357"
@@ -42,15 +41,14 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x4381deb85b1b2c9843c222944b616d997516dcbd6a964e1eaf0def0830695233");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 8); // zcoin: starting difficulty is 1 / 2^12
+uint256 hashGenesisBlock = uint256("0x322bad477efb4b33fa4b1f0b2861eaf543c61068da9898a95062fdb02ada486f");
+uint256 hashGenesisMerkleRoot = uint256("0x31f49b23f8a1185f85a6a6972446e72a86d50ca0e3b3ffe217d0c2fea30473db");
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 12);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainWork = 0;
 uint256 nBestInvalidWork = 0;
 uint256 hashBestChain = 0;
-uint32_t nVertcoinChainStartTime = 1389306217;
-int64 nStartRewardTime = 1475020800; // 09/28/2016 @ 12:00am (UTC)
 CBlockIndex* pindexBest = NULL;
 set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
 int64 nTimeBestReceived = 0;
@@ -62,22 +60,21 @@ bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
 /** Fees smaller than this (in ztoshi) are considered zero fee (for transaction creation) */
-int64 CTransaction::nMinTxFee = 1000000; // 0.01 zcoin
+int64 CTransaction::nMinTxFee = 100000; // 0.001 Hexxcoin
 /** Fees smaller than this (in ztoshi) are considered zero fee (for relaying) */
-int64 CTransaction::nMinRelayTxFee = 1000000; // 0.01 zcoin
+int64 CTransaction::nMinRelayTxFee = 100000; // 0.001 Hexxcoin
 
 CMedianFilter<int> cPeerBlockCounts(8, 0); // Amount of blocks that other nodes claim to have
 
 map<uint256, CBlock*> mapOrphanBlocks;
 multimap<uint256, CBlock*> mapOrphanBlocksByPrev;
-
 map<uint256, CTransaction> mapOrphanTransactions;
 map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "ZCoin Signed Message:\n";
+const string strMessageMagic = "Hexxcoin Signed Message:\n";
 
 double dHashesPerSec = 0.0;
 int64 nHPSTimerStart = 0;
@@ -370,7 +367,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 
 bool CTxOut::IsDust() const
 {
-    // ZCoin: IsDust() detection disabled, allows any valid dust to be relayed.
+    // Hexxcoin: IsDust() detection disabled, allows any valid dust to be relayed.
     // The fees imposed on each dust txo is considered sufficient spam deterrant. 
     return false;
 }
@@ -624,64 +621,6 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
     {
         if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
             return state.DoS(100, error("CTransaction::CheckTransaction() : coinbase script size"));
-
-        // Check for founders inputs
-        if ((nHeight > 0) && (nHeight < 210000)) {
-
-            bool found_1 = false;
-            bool found_2 = false;
-            bool found_3 = false;
-            bool found_4 = false;
-            bool found_5 = false;
-
-            CScript FOUNDER_1_SCRIPT;
-            CScript FOUNDER_2_SCRIPT;
-            CScript FOUNDER_3_SCRIPT;
-            CScript FOUNDER_4_SCRIPT;
-            CScript FOUNDER_5_SCRIPT;
-
-            if(!fTestNet && (GetAdjustedTime() > nStartRewardTime)){
-                FOUNDER_1_SCRIPT.SetDestination(CBitcoinAddress("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr").Get());
-                if(nHeight < 14000){
-                   FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("aLrg41sXbXZc5MyEj7dts8upZKSAtJmRDR").Get());
-                }else{
-                   FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("aHu897ivzmeFuLNB6956X6gyGeVNHUBRgD").Get());                   
-                }
-                FOUNDER_3_SCRIPT.SetDestination(CBitcoinAddress("aQ18FBVFtnueucZKeVg4srhmzbpAeb1KoN").Get());
-                FOUNDER_4_SCRIPT.SetDestination(CBitcoinAddress("a1HwTdCmQV3NspP2QqCGpehoFpi8NY4Zg3").Get());
-                FOUNDER_5_SCRIPT.SetDestination(CBitcoinAddress("a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U").Get());
-            }else if(!fTestNet && (GetAdjustedTime() <= nStartRewardTime)){
-                return state.DoS(100, error("CTransaction::CheckTransaction() : transaction is too early"));
-            }else{
-                FOUNDER_1_SCRIPT.SetDestination(CBitcoinAddress("TCE4hvs2UTDjYriey7R9qBkbvUAYxWmZni").Get());
-                FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("TPyA7d3fribqxXm9uJU61S76Lzuj7F8jLz").Get());
-                FOUNDER_3_SCRIPT.SetDestination(CBitcoinAddress("TXatvpS15EvejVuJVC2rgD73rSaQz8JiX6").Get());
-                FOUNDER_4_SCRIPT.SetDestination(CBitcoinAddress("TJMpFjtDi8s5AM3GyW41QshH2NNmKgrGNq").Get());
-                FOUNDER_5_SCRIPT.SetDestination(CBitcoinAddress("TTtLk1iapn8QebamQcb8GEh1MNq8agYcVk").Get());
-            }
-
-            BOOST_FOREACH(const CTxOut& output, vout) {
-                if (output.scriptPubKey == FOUNDER_1_SCRIPT && output.nValue == (int64)(2 * COIN)) {
-                    found_1 = true;
-                }
-                if (output.scriptPubKey == FOUNDER_2_SCRIPT && output.nValue == (int64)(2 * COIN)) {
-                    found_2 = true;
-                }
-                if (output.scriptPubKey == FOUNDER_3_SCRIPT && output.nValue == (int64)(2 * COIN)) {
-                    found_3 = true;
-                }
-                if (output.scriptPubKey == FOUNDER_4_SCRIPT && output.nValue == (int64)(2 * COIN)) {
-                    found_4 = true;
-                }
-                if (output.scriptPubKey == FOUNDER_5_SCRIPT && output.nValue == (int64)(2 * COIN)) {
-                    found_5 = true;
-                }
-            }
-
-            if (!(found_1 && found_2 && found_3 && found_4 && found_5)) {
-                return state.DoS(100, error("CTransaction::CheckTransaction() : founders reward missing"));
-            }
-        }
     }
     else
     {
@@ -831,7 +770,6 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
 
                                 // CHECK PUBCOIN ID
                                 int pubcoinId = txin.nSequence;
-                                //printf("====================== pubcoinId = %d\n", pubcoinId);
                                 if (pubcoinId < 1 || pubcoinId >= INT_MAX) { // IT BEGINS WITH 1
                                     return state.DoS(100, error("CTransaction::CheckTransaction() : Error: nSequence is not correct format"));
                                 }
@@ -839,17 +777,16 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                 // VERIFY COINSPEND TX
                                 int countPubcoin = 0;
                                 BOOST_FOREACH(const CZerocoinEntry& pubCoinItem, listPubCoin) {
-                                    //printf("denomination = %d, id = %d, pubcoinId = %d height = %d\n", pubCoinItem.denomination, pubCoinItem.id, pubcoinId, pubCoinItem.nHeight);
 
                                     if (pubCoinItem.denomination == libzerocoin::ZQ_LOVELACE && pubCoinItem.id == pubcoinId && pubCoinItem.nHeight != -1) {
-                                        printf("## denomination = %d, id = %d, pubcoinId = %d height = %d\n", pubCoinItem.denomination, pubCoinItem.id, pubcoinId, pubCoinItem.nHeight);
+										printf("## denomination = %d, id = %d, pubcoinId = %d height = %d\n", pubCoinItem.denomination, pubCoinItem.id, pubcoinId, pubCoinItem.nHeight);
                                         libzerocoin::PublicCoin pubCoinTemp(ZCParams, pubCoinItem.value, libzerocoin::ZQ_LOVELACE);
                                         if (!pubCoinTemp.validate()) {
                                             return state.DoS(100, error("CTransaction::CheckTransaction() : Error: Public Coin for Accumulator is not valid !!!"));
                                         }
                                         countPubcoin++;
                                         accumulator += pubCoinTemp;
-                                        if (countPubcoin >= 2) { // MINIMUM REQUIREMENT IS 2 PUBCOINS
+                                        if (countPubcoin >= 2) {
                                             if (newSpend.Verify(accumulator, newMetadata)) {
                                                 printf("COIN SPEND TX DID VERIFY!\n");
                                                 passVerify = true;
@@ -960,7 +897,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                             zccoinSpend.hashTx = hashTx;
                                             zccoinSpend.pubCoin = 0;
                                             zccoinSpend.id = pubcoinId;
-                                            if(nHeight > 22000 && nHeight < INT_MAX){
+                                            if(nHeight > 8500 && nHeight < INT_MAX){
                                                 zccoinSpend.denomination = libzerocoin::ZQ_LOVELACE;
                                             }
                                             walletdb.WriteCoinSpendSerialEntry(zccoinSpend);
@@ -1133,7 +1070,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                             zccoinSpend.hashTx = hashTx;
                                             zccoinSpend.pubCoin = 0;
                                             zccoinSpend.id = pubcoinId;
-                                            if(nHeight > 22000 && nHeight < INT_MAX){
+                                            if(nHeight > 8500 && nHeight < INT_MAX){
                                                 zccoinSpend.denomination = libzerocoin::ZQ_GOLDWASSER;
                                             }
                                             walletdb.WriteCoinSpendSerialEntry(zccoinSpend);
@@ -1304,7 +1241,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                             zccoinSpend.hashTx = hashTx;
                                             zccoinSpend.pubCoin = 0;
                                             zccoinSpend.id = pubcoinId;
-                                            if(nHeight > 22000 && nHeight < INT_MAX){
+                                            if(nHeight > 8500 && nHeight < INT_MAX){
                                                 zccoinSpend.denomination = libzerocoin::ZQ_RACKOFF;
                                             }
                                             walletdb.WriteCoinSpendSerialEntry(zccoinSpend);
@@ -1475,7 +1412,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                             zccoinSpend.hashTx = hashTx;
                                             zccoinSpend.pubCoin = 0;
                                             zccoinSpend.id = pubcoinId;
-                                            if(nHeight > 22000 && nHeight < INT_MAX){
+                                            if(nHeight > 8500 && nHeight < INT_MAX){
                                                 zccoinSpend.denomination = libzerocoin::ZQ_PEDERSEN;
                                             }
                                             walletdb.WriteCoinSpendSerialEntry(zccoinSpend);
@@ -1529,7 +1466,6 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                 BOOST_FOREACH(const CZerocoinEntry& pubCoinItem, listPubCoin) {
 
                                     if (pubCoinItem.denomination == libzerocoin::ZQ_WILLIAMSON && pubCoinItem.id == pubcoinId && pubCoinItem.nHeight != -1) {
-                                        printf("## denomination = %d, id = %d, pubcoinId = %d height = %d\n", pubCoinItem.denomination, pubCoinItem.id, pubcoinId, pubCoinItem.nHeight);
                                         libzerocoin::PublicCoin pubCoinTemp(ZCParams, pubCoinItem.value, libzerocoin::ZQ_WILLIAMSON);
                                         if (!pubCoinTemp.validate()) {
                                             return state.DoS(100, error("CTransaction::CheckTransaction() : Error: Public Coin for Accumulator is not valid !!!"));
@@ -1647,7 +1583,7 @@ bool CTransaction::CheckTransaction(CValidationState &state, uint256 hashTx, boo
                                             zccoinSpend.hashTx = hashTx;
                                             zccoinSpend.pubCoin = 0;
                                             zccoinSpend.id = pubcoinId;
-                                            if(nHeight > 22000 && nHeight < INT_MAX){
+                                            if(nHeight > 8500 && nHeight < INT_MAX){
                                                 zccoinSpend.denomination = libzerocoin::ZQ_WILLIAMSON;
                                             }
                                             walletdb.WriteCoinSpendSerialEntry(zccoinSpend);
@@ -1696,10 +1632,10 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
         // * If we are creating a transaction we allow transactions up to 5,000 bytes
         //   to be considered safe and assume they can likely make it into this section.
         if (nBytes < (mode == GMF_SEND ? 5000 : (DEFAULT_BLOCK_PRIORITY_SIZE - 1000)))
-            nMinFee = 0;
+            nMinFee = 100000;
     }
 
-    // ZCoin
+    // Hexxcoin
     // To limit dust spam, add nBaseFee for each output less than DUST_SOFT_LIMIT
     BOOST_FOREACH(const CTxOut& txout, vout)
         if (txout.nValue < DUST_SOFT_LIMIT)
@@ -2172,15 +2108,6 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex)
     return true;
 }
 
-void CBlockHeader::SetAuxPow(CAuxPow* pow)
-{
-    if (pow != NULL)
-        nVersion |= BLOCK_VERSION_AUXPOW;
-    else
-        nVersion &= ~BLOCK_VERSION_AUXPOW;
-    auxpow.reset(pow);
-}
-
 uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 {
     // Work back to the first block in the orphan chain
@@ -2189,60 +2116,38 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
     return pblock->GetHash();
 }
 
-const unsigned char minNfactor = 10;
-const unsigned char maxNfactor = 30;
-
-unsigned char GetNfactor(int64 nTimestamp) {
-    int l = 0;
-
-    if (nTimestamp <= nVertcoinChainStartTime)
-        return minNfactor;
-
-    int64 s = nTimestamp - nVertcoinChainStartTime;
-    while ((s >> 1) > 3) {
-      l += 1;
-      s >>= 1;
-    }
-
-    s &= 3;
-
-    int n = (l * 158 + s * 28 - 2670) / 100;
-
-    if (n < 0) n = 0;
-
-    if (n > 255)
-        printf( "GetNfactor(%lld) - something wrong(n == %d)\n", nTimestamp, n );
-
-    unsigned char N = (unsigned char) n;
-
-    return min(max(N, minNfactor), maxNfactor);
-}
-
 int64 static GetBlockValue(int nHeight, int64 nFees, unsigned int nTime)
 {
-    // Just want to make sure no one gets a dime before 28 Sep 2016 12:00 AM UTC
-    if (nTime < nStartRewardTime && !fTestNet)
+
+    if (nHeight == 0) // Genesis block is 0 coins
         return 0;
 
-    // Genesis block is 0 coin
-    if (nHeight == 0)
-        return 0;
+    if (nHeight == 1) // Coin swap amount
+        return 996714 * COIN; // account HGkojYYJzwqm8XBYSLii5nVommLEVYUong , all funds sent to owners before block 800
 
-    int halvings = nHeight / 210000;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
+	else if (nHeight <= 8064) // 2 weeks
+        return 1 * COIN; // no fees
 
-    int64 nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
+	int64 nSubsidy = 12.5 * COIN; // Subsidy is cut in half every 24192 blocks which will occur approximately every 6 weeks.
+    int halvings = nHeight / 24192;
+
+	if (nHeight <= 12096) // 1 week
+		nSubsidy = 3.125 * COIN;
+
+    else if (nHeight <= 16128) // 1 week
+        nSubsidy = 6.25 * COIN;
+
+    if (halvings >= 4)// Force block reward to 1 coin when right shift is undefined.
+		return 1 * COIN + nFees; // final reward
+
     nSubsidy >>= halvings;
 
 	return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 60 * 60; // 60 minutes between retargets
-static const int64 nTargetSpacing = 10 * 60; // 10 minute blocks
-static const int64 nInterval = nTargetTimespan / nTargetSpacing; // retargets every 6 blocks
+static const int64 nTargetTimespan = 150; // 2,5 minutes between retargets
+static const int64 nTargetSpacing = 150; // 2,5 minutes blocks
+static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -2251,16 +2156,16 @@ static const int64 nInterval = nTargetTimespan / nTargetSpacing; // retargets ev
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
 {
     // Testnet has min-difficulty blocks
-    // after nTargetSpacing*6 time between blocks:
-    if (fTestNet && nTime > nTargetSpacing*6)
-        return bnProofOfWorkLimit.GetCompact();
+    // after nTargetSpacing*16 time between blocks:
+    //if (fTestNet && nTime > nTargetSpacing*16)
+    //    return bnProofOfWorkLimit.GetCompact();
 
     CBigNum bnResult;
     bnResult.SetCompact(nBase);
     while (nTime > 0 && bnResult < bnProofOfWorkLimit)
     {
-        // Maximum 2000000% adjustment...
-        bnResult *= 20000;
+        // Maximum 200% adjustment...
+        bnResult *= 2;
         // ... in best-case exactly 4-times-normal target time
         nTime -= nTargetTimespan*4;
     }
@@ -2344,16 +2249,16 @@ unsigned int static BorisRidiculouslyNamedDifficultyFunction(const CBlockIndex* 
     
       
     // debug print
-    printf("Difficulty Retarget - Boris's Ridiculously Named Difficulty Function\n");
-    printf("nHeight = %i\n", pindexLast->nHeight);
-    printf("nPastBlocks = %u\n", nPastBlocks);
-    printf("nBlockTimeRatio Target/Actual = %.4f\n", nBlockTimeRatio.to_float());
-    printf("Mean blocktime = %.1fs\n", TargetBlocksSpacingSeconds / nBlockTimeRatio.to_float());
-    printf("SlowBlocksLimit = %.4f\n", SlowBlocksLimit[nPastBlocks-1]);
-    printf("FastBlocksLimit = %.4f\n", FastBlocksLimit[nPastBlocks-1]);
-    printf("Before: %08x %.8f\n", BlockLastSolved->nBits, GetDifficultyHelper(BlockLastSolved->nBits));
-    printf("After: %08x %.8f\n", bnNew.GetCompact(), GetDifficultyHelper(bnNew.GetCompact()));
-    printf("Ratio After/Before: %.8f\n", GetDifficultyHelper(bnNew.GetCompact()) / GetDifficultyHelper(BlockLastSolved->nBits));
+        //printf("Difficulty Retarget - Boris's Ridiculously Named Difficulty Function\n");
+        //printf("nHeight = %i\n", pindexLast->nHeight);
+        //printf("nPastBlocks = %u\n", nPastBlocks);
+        //printf("nBlockTimeRatio Target/Actual = %.4f\n", nBlockTimeRatio.to_float());
+        //printf("Mean blocktime = %.1fs\n", TargetBlocksSpacingSeconds / nBlockTimeRatio.to_float());
+        //printf("SlowBlocksLimit = %.4f\n", SlowBlocksLimit[nPastBlocks-1]);
+        //printf("FastBlocksLimit = %.4f\n", FastBlocksLimit[nPastBlocks-1]);
+        //printf("Before: %08x %.8f\n", BlockLastSolved->nBits, GetDifficultyHelper(BlockLastSolved->nBits));
+        //printf("After: %08x %.8f\n", bnNew.GetCompact(), GetDifficultyHelper(bnNew.GetCompact()));
+        //printf("Ratio After/Before: %.8f\n", GetDifficultyHelper(bnNew.GetCompact()) / GetDifficultyHelper(BlockLastSolved->nBits));
 
     return bnNew.GetCompact();
 }
@@ -2366,43 +2271,15 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
         return bnProofOfWorkLimit.GetCompact();
     }
 
-    static const uint32_t        BlocksTargetSpacing                        = 10 * 60; // 10 minutes
+    static const uint32_t        BlocksTargetSpacing                        = 150; // 2.5 minutes
         unsigned int                TimeDaySeconds                                = 60 * 60 * 24;
-        int64                                PastSecondsMin                                = TimeDaySeconds * 0.25; // 21600
-        int64                                PastSecondsMax                                = TimeDaySeconds * 7;// 604800
-        uint32_t                                PastBlocksMin                                = PastSecondsMin / BlocksTargetSpacing; // 36 blocks
-        uint32_t                                PastBlocksMax                                = PastSecondsMax / BlocksTargetSpacing; // 1008 blocks
+        int64                                PastSecondsMin                                = TimeDaySeconds / 288;
+        int64                                PastSecondsMax                                = TimeDaySeconds / 2;
+        uint32_t                                PastBlocksMin                                = PastSecondsMin / BlocksTargetSpacing;
+        uint32_t                                PastBlocksMax                                = PastSecondsMax / BlocksTargetSpacing;
         
-    if (fTestNet) {
-        // If the new block's timestamp is more than nTargetSpacing*6
-        // then allow mining of a min-difficulty block
-        if (pblock->nTime > pindexLast->nTime + nTargetSpacing*6) {
-            return bnProofOfWorkLimit.GetCompact();
-        }
-    }
-
-    // 9/29/2016 - Reset to Lyra2(2,block_height,256) due to ASIC KnC Miner Scrypt
-    // 36 block look back, reset to mininmum diff
-    if(!fTestNet && pindexLast->nHeight + 1 >= 500 && pindexLast->nHeight + 1 <= 535){
-        return bnProofOfWorkLimit.GetCompact();
-    }
-    // reset to minimum diff at testnet after scrypt_n, 6 block look back
-    if(fTestNet && pindexLast->nHeight + 1 >= 80 && pindexLast->nHeight + 1 <= 85){
-        return bnProofOfWorkLimit.GetCompact();
-    }
-
-    // 02/11/2017 - Increase diff to match with new hashrates of Lyra2Z algo
-    if ( (!fTestNet && pindexLast->nHeight + 1 == 20500) || (fTestNet && pindexLast->nHeight + 1 == 90) ) {
-        CBigNum bnNew;
-        bnNew.SetCompact(pindexLast->nBits);
-        bnNew /= 20000; // increase the diff by 20000x since the new hashrate is approx. 20000 times higher
-        printf("Lyra2Z HF - Before: %08x %.8f\n", pindexLast->nBits, GetDifficultyHelper(pindexLast->nBits));
-        printf("Lyra2Z HF - After: %08x %.8f\n", bnNew.GetCompact(), GetDifficultyHelper(bnNew.GetCompact()));
-        if (bnNew > bnProofOfWorkLimit) { bnNew = bnProofOfWorkLimit; } // safe threshold
-        return bnNew.GetCompact();
-    }
-
-   	if ((pindexLast->nHeight+1) % nInterval != 0) // Retarget every nInterval blocks
+    
+   	if ((pindexLast->nHeight+1) % nInterval != 0) // Retarget every nInterval blocks 
     {
         return pindexLast->nBits;
     }
@@ -3450,7 +3327,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     setBlockIndexValid.insert(pindexNew);
 
     /* write both the immutible data (CDiskBlockIndex) and the mutable data (BlockIndex) */
-    if (!pblocktree->WriteDiskBlockIndex(CDiskBlockIndex(pindexNew, this->auxpow)) || !pblocktree->WriteBlockIndex(*pindexNew))
+    if (!pblocktree->WriteDiskBlockIndex(CDiskBlockIndex(pindexNew)) || !pblocktree->WriteBlockIndex(*pindexNew))
         return state.Abort(_("Failed to write block index"));
 
     // New best?
@@ -3472,64 +3349,15 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     return true;
 }
 
-// to enable merged mining:
-// - set a block from which it will be enabled
-// - set a unique chain ID
-//   each merged minable scrypt_N_1_1_256 coin should have a different one
-//   (if two have the same ID, they can't be merge mined together)
-int GetAuxPowStartBlock()
-{
-    if (fTestNet)
-        return 66;
-    else
-        return 500;
-}
-
-int GetOurChainID()
-{
-
-    return 0x0001; // We are the first :)
-
-}
-
 bool CBlockHeader::CheckProofOfWork(int nHeight) const
 {
-    if (nHeight >= GetAuxPowStartBlock())
-    {
-        // Prevent same work from being submitted twice:
-        // - this block must have our chain ID
-        // - parent block must not have the same chain ID (see CAuxPow::Check)
-        // - index of this chain in chain merkle tree must be pre-determined (see CAuxPow::Check)
-        if (!fTestNet && nHeight != INT_MAX && GetChainID() != GetOurChainID())
-            return error("CheckProofOfWork() : block does not have our chain ID");
-
-        if (auxpow.get() != NULL)
-        {
-            if (!auxpow->Check(GetHash(), GetChainID()))
-                return error("CheckProofOfWork() : AUX POW is not valid");
-            // Check proof of work matches claimed amount
-            if (!::CheckProofOfWork(auxpow->GetParentBlockHash(nHeight), nBits))
-                return error("CheckProofOfWork() : AUX proof of work failed");
-        } 
-        else
-        {
-
-            // Check proof of work matches claimed amount
-            if (!::CheckProofOfWork(GetPoWHash(nHeight), nBits))
-                return error("CheckProofOfWork() : proof of work failed - 1");
-        }
-    }
-    else
-    {
-        if (auxpow.get() != NULL)
-        {
-            return error("CheckProofOfWork() : AUX POW is not allowed at this block");
-        }
-
         // Check if proof of work marches claimed amount
-        if (!::CheckProofOfWork(GetPoWHash(nHeight), nBits))
+        uint256 phash = GetPoWHash(nHeight);
+        if (phash == 0)
+            return error("CheckProofOfWork() : Out of memory - 2");
+        if (!::CheckProofOfWork(phash, nBits))
             return error("CheckProofOfWork() : proof of work failed - 2");
-    }
+
     return true;
 }
 
@@ -3637,7 +3465,7 @@ bool CBlock::CheckBlock(CValidationState &state, int nHeight, bool fCheckPOW, bo
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"));
 
-    // ZCoin: Special short-term limits to avoid 10,000 BDB lock limit:
+    // Hexxcoin: Special short-term limits to avoid 10,000 BDB lock limit:
     if (GetBlockTime() < 1376568000)  // stop enforcing 15 August 2013 00:00:00
     {
         // Rule is: #unique txids referenced <= 4,500
@@ -3654,7 +3482,6 @@ bool CBlock::CheckBlock(CValidationState &state, int nHeight, bool fCheckPOW, bo
         if (nTxids > 4500)
             return error("CheckBlock() : 15 August maxlocks violation");
     }
-
     CBlockIndex* pindexPrev = NULL;
     if (GetHash() != hashGenesisBlock)
     {
@@ -3817,7 +3644,7 @@ bool CBlock::AcceptBlock(CValidationState &state, CDiskBlockPos *dbp)
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
-    // ZCoin: temporarily disable v2 block lockin until we are ready for v2 transition
+    // Hexxcoin: temporarily disable v2 block lockin until we are ready for v2 transition
     return false;
     unsigned int nFound = 0;
     for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
@@ -4299,12 +4126,10 @@ bool LoadBlockIndex()
 {
     if (fTestNet)
     {
-        pchMessageStart[0] = 0xcf;
-        pchMessageStart[1] = 0xfc;
-        pchMessageStart[2] = 0xbe;
-        pchMessageStart[3] = 0xea;
-        hashGenesisBlock = uint256("0x7ac038c193c2158c428c59f9ae0c02a07115141c6e9dc244ae96132e99b4e642");
-//        hashGenesisBlock = uint256("0x6c88eb567e5ea876b7082c16a07041bf6c1eb0cb42389323f73a908f9f32b2af");
+        pchMessageStart[0] = 't';
+        pchMessageStart[1] = 'e';
+        pchMessageStart[2] = 's';
+        pchMessageStart[3] = 't';
     }
 
     //
@@ -4331,62 +4156,29 @@ bool InitBlockIndex() {
     if (!fReindex) {
 
         // Genesis block
-        const char* pszTimestamp = "Times 2014/10/31 Maine Judge Says Nurse Must Follow Ebola Quarantine for Now";
+        const char* pszTimestamp = "Lets Swap Hexx";
         CTransaction txNew;
         vector<unsigned char> extraNonce(4);
-        unsigned int startBits;
-        startBits = 0x1e0ffff0;
-
-        if(fTestNet) {
-            extraNonce[0] = 0x08;
-            extraNonce[1] = 0x00;
-            extraNonce[2] = 0x00;
-            extraNonce[3] = 0x00;
-
-        } else {
-            extraNonce[0] = 0x82;
-            extraNonce[1] = 0x3f;
-            extraNonce[2] = 0x00;
-            extraNonce[3] = 0x00;
-        }
-
+        extraNonce[0] = 0x82;
+        extraNonce[1] = 0x3f;
+        extraNonce[2] = 0x00;
+        extraNonce[3] = 0x00;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << startBits << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp)) << extraNonce;
-        txNew.vout[0].nValue = 0 * COIN;
-
+        txNew.vin[0].scriptSig = CScript() << bnProofOfWorkLimit.GetCompact() << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp)) << extraNonce;
+        txNew.vout[0].nValue = 0;
         txNew.vout[0].scriptPubKey = CScript();
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 2;
-        block.nTime    = 1414776286; // 10/31/2014 @ 5:24pm (UTC)
-        block.nBits    = startBits;
-        block.nNonce   = 142392;
+        block.nTime    = 1485785935;
+        block.nBits = bnProofOfWorkLimit.GetCompact();
+        block.nNonce   = 2610;
 
-        if (fTestNet)
-        {
-//            block.nTime    = 1485946800; // 1-Feb-2017 12:00:00 UTC
-            block.nTime    = 1414776313;
-            block.nNonce   = 1620571;
-        }
-
-        //// debug print
         uint256 hash = block.GetHash();
-        printf("block.GetHash = %s\n", hash.ToString().c_str());
-        printf("hashGenesisBlock = %s\n", hashGenesisBlock.ToString().c_str());
-        printf("block.hashMerkleRoot = %s\n", block.hashMerkleRoot.ToString().c_str());
-
-        uint256 genMerkleRoot;
-        if(fTestNet)
-            genMerkleRoot.SetHex("0x25b361d60bc7a66b311e72389bf5d9add911c735102bcb6425f63aceeff5b7b8");
-        else
-            genMerkleRoot.SetHex("0x365d2aa75d061370c9aefdabac3985716b1e3b4bb7c4af4ed54f25e5aaa42783");
-        
-
-        assert(block.hashMerkleRoot == genMerkleRoot);
-        block.print();
+        assert(block.hashMerkleRoot == hashGenesisMerkleRoot);
         assert(hash == hashGenesisBlock);
 
 
@@ -4659,7 +4451,7 @@ bool static AlreadyHave(const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xe3, 0xd9, 0xfe, 0xf1 };
+unsigned char pchMessageStart[4] = { 'h', 'e', 'x', 'x' };
 
 
 void static ProcessGetData(CNode* pfrom)
@@ -5754,7 +5546,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// ZCoinMiner
+// HexxcoinMiner
 //
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
@@ -5861,47 +5653,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;  
     txNew.vout[0].nValue = 0;
 
-    // To founders and investors
-    if ((pindexBest->nHeight+1 > 0) && (pindexBest->nHeight+1 < 210000)) {
-
-         // Take some reward away from us
-         txNew.vout[0].nValue = -10 * COIN;
-
-         CScript FOUNDER_1_SCRIPT;
-         CScript FOUNDER_2_SCRIPT;
-         CScript FOUNDER_3_SCRIPT;
-         CScript FOUNDER_4_SCRIPT;
-         CScript FOUNDER_5_SCRIPT;
-
-         if(!fTestNet && (GetAdjustedTime() > nStartRewardTime)){
-             FOUNDER_1_SCRIPT.SetDestination(CBitcoinAddress("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr").Get());
-             if(pindexBest->nHeight + 1 < 14000){
-                FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("aLrg41sXbXZc5MyEj7dts8upZKSAtJmRDR").Get());
-             }else{
-                FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("aHu897ivzmeFuLNB6956X6gyGeVNHUBRgD").Get());                
-             }
-             FOUNDER_3_SCRIPT.SetDestination(CBitcoinAddress("aQ18FBVFtnueucZKeVg4srhmzbpAeb1KoN").Get());
-             FOUNDER_4_SCRIPT.SetDestination(CBitcoinAddress("a1HwTdCmQV3NspP2QqCGpehoFpi8NY4Zg3").Get());
-             FOUNDER_5_SCRIPT.SetDestination(CBitcoinAddress("a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U").Get());
-         }else if(!fTestNet && (GetAdjustedTime() <= nStartRewardTime)){
-             throw std::runtime_error("CreateNewBlock() : Create new block too early");
-         }else{
-             FOUNDER_1_SCRIPT.SetDestination(CBitcoinAddress("TCE4hvs2UTDjYriey7R9qBkbvUAYxWmZni").Get());
-             FOUNDER_2_SCRIPT.SetDestination(CBitcoinAddress("TPyA7d3fribqxXm9uJU61S76Lzuj7F8jLz").Get());
-             FOUNDER_3_SCRIPT.SetDestination(CBitcoinAddress("TXatvpS15EvejVuJVC2rgD73rSaQz8JiX6").Get());
-             FOUNDER_4_SCRIPT.SetDestination(CBitcoinAddress("TJMpFjtDi8s5AM3GyW41QshH2NNmKgrGNq").Get());
-             FOUNDER_5_SCRIPT.SetDestination(CBitcoinAddress("TTtLk1iapn8QebamQcb8GEh1MNq8agYcVk").Get());
-         }
-
-         // And give it to the founders
-         txNew.vout.push_back(CTxOut(2 * COIN, CScript(FOUNDER_1_SCRIPT.begin(), FOUNDER_1_SCRIPT.end())));
-         txNew.vout.push_back(CTxOut(2 * COIN, CScript(FOUNDER_2_SCRIPT.begin(), FOUNDER_2_SCRIPT.end())));
-         txNew.vout.push_back(CTxOut(2 * COIN, CScript(FOUNDER_3_SCRIPT.begin(), FOUNDER_3_SCRIPT.end())));
-         txNew.vout.push_back(CTxOut(2 * COIN, CScript(FOUNDER_4_SCRIPT.begin(), FOUNDER_4_SCRIPT.end())));
-         txNew.vout.push_back(CTxOut(2 * COIN, CScript(FOUNDER_5_SCRIPT.begin(), FOUNDER_5_SCRIPT.end())));
-
-    }
-
     // Add our coinbase tx as first transaction
     pblock->vtx.push_back(txNew);
     pblocktemplate->vTxFees.push_back(-1); // updated at end
@@ -5923,10 +5674,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
     unsigned int COUNT_SPEND_ZC_TX = 0;
-    unsigned int MAX_SPEND_ZC_TX_PER_BLOCK = 0;
-    if(pindexBest->nHeight + 1 > 22000){
-        MAX_SPEND_ZC_TX_PER_BLOCK = 1;
-    }
+    unsigned int MAX_SPEND_ZC_TX_PER_BLOCK = 1;
 
     // Collect memory pool transactions into the block
     int64 nFees = 0;
@@ -5969,7 +5717,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
                 // Size limits
                 unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
-                printf("\n\n\n\n######################################\n");
+                printf("######################################\n\n\n\n\n");
                 printf("nBlockMaxSize = %d\n", nBlockMaxSize);
                 printf("nBlockSize = %d\n", nBlockSize);
                 printf("nTxSize = %d\n", nTxSize);
@@ -6270,36 +6018,19 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     }
 
     uint256 hash = pblock->GetPoWHash(nHeight);
+    if (hash == 0)
+        return error("CheckWork() : Out of memory");
+
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
-    CAuxPow *auxpow = pblock->auxpow.get();
+     if (hash > hashTarget)
+         return false;
 
-    if (auxpow != NULL) {
-        if (!auxpow->Check(pblock->GetHash(), pblock->GetChainID()))
-            return error("AUX POW is not valid");
+     //// debug print
+     printf("HexxcoinMiner:\n");
+     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
 
-        if (auxpow->GetParentBlockHash(nHeight) > hashTarget)
-            return error("AUX POW parent hash %s is not under target %s", auxpow->GetParentBlockHash(nHeight).GetHex().c_str(), hashTarget.GetHex().c_str());
-
-        //// debug print
-        printf("ZCoinMiner:\n");
-        printf("AUX proof-of-work found  \n     our hash: %s   \n  parent hash: %s  \n       target: %s\n",
-                hash.GetHex().c_str(),
-                auxpow->GetParentBlockHash(nHeight).GetHex().c_str(),
-                hashTarget.GetHex().c_str());
-
-    }
-    else
-    {
-        if (hash > hashTarget)
-            return false;
-
-        //// debug print
-        printf("ZCoinMiner:\n");
-        printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
-    }
-    
-    //// debug print    
+    //// debug print
     pblock->print();
     printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
 
@@ -6307,7 +6038,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
-            return error("ZCoinMiner : generated block is stale");
+            return error("HexxcoinMiner : generated block is stale");
 
         // Remove key from key pool
         reservekey.KeepKey();
@@ -6321,47 +6052,19 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         CValidationState state;
         if (!ProcessBlock(state, NULL, pblock))
-            return error("ZCoinMiner : ProcessBlock, block not accepted");
+            return error("HexxcoinMiner : ProcessBlock, block not accepted");
     }
 
     return true;
-}
-
-std::string CBlockIndex::ToString() const
-{
-    return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
-            pprev, pnext, nHeight,
-            hashMerkleRoot.ToString().substr(0,10).c_str(),
-            GetBlockHash().ToString().c_str());
-}
-
-std::string CDiskBlockIndex::ToString() const
-{
-    std::string str = "CDiskBlockIndex(";
-    str += CBlockIndex::ToString();
-    str += strprintf("\n                hashBlock=%s, hashPrev=%s, hashParentBlock=%s)",
-        GetBlockHash().ToString().c_str(),
-        hashPrev.ToString().c_str(),
-        (auxpow.get() != NULL) ? auxpow->GetParentBlockHash(nHeight).ToString().substr(0,20).c_str() : "-");
-    return str;
 }
 
 CBlockHeader CBlockIndex::GetBlockHeader() const
 {
     CBlockHeader block;
 
-    if (nVersion & BLOCK_VERSION_AUXPOW) {
-        CDiskBlockIndex diskblockindex;
-        // auxpow is not in memory, load CDiskBlockHeader
-        // from database to get it
-
-        pblocktree->ReadDiskBlockIndex(*phashBlock, diskblockindex);
-        block.auxpow = diskblockindex.auxpow;
-    }
-
     block.nVersion       = nVersion;
     if (pprev)
-        block.hashPrevBlock = pprev->GetBlockHash();
+    block.hashPrevBlock = pprev->GetBlockHash();
     block.hashMerkleRoot = hashMerkleRoot;
     block.nTime          = nTime;
     block.nBits          = nBits;
@@ -6369,18 +6072,17 @@ CBlockHeader CBlockIndex::GetBlockHeader() const
     return block;
 }
 
-void static ZcoinMiner(CWallet *pwallet)
+void static HexxcoinMiner(CWallet *pwallet)
 {
-    printf("ZCoinMiner started\n");
+    printf("HexxcoinMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("ZCoin-Miner");
+    RenameThread("Hexxcoin-Miner");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    try { loop {
-
+    try { while(true) {
         while (vNodes.empty())
             MilliSleep(1000);
 
@@ -6396,7 +6098,7 @@ void static ZcoinMiner(CWallet *pwallet)
         CBlock *pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-        printf("Running ZcoinMiner with %" PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
+        printf("Running HexxcoinMiner with %" PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
@@ -6418,35 +6120,16 @@ void static ZcoinMiner(CWallet *pwallet)
         //
         int64 nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        loop
+        while (true)
         {
             unsigned int nHashesDone = 0;
             uint256 thash;
-
-            loop
+            while (true)
             {
-                if ( (!fTestNet && pindexPrev->nHeight + 1 >= 20500) ) {
-                    lyra2z_hash(BEGIN(pblock->nVersion), BEGIN(thash));
-                } else if( !fTestNet && pindexPrev->nHeight + 1 >= 8192){
-                    LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, 8192, 256);
-                } else if( !fTestNet && pindexPrev->nHeight + 1 >= 500){
-                    LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, pindexPrev->nHeight + 1, 256);
-                } else if (fTestNet && pindexPrev->nHeight + 1 >= 90) { // testnet
-                    lyra2z_hash(BEGIN(pblock->nVersion), BEGIN(thash));
-                }else if(fTestNet && pindexPrev->nHeight + 1 >= 80){ // testnet
-                    LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, 8192, 256);
-                } else{
-                    unsigned long int scrypt_scratpad_size_current_block = ((1 << (GetNfactor(pblock->nTime) + 1)) * 128 ) + 63;
-                    char scratchpad[scrypt_scratpad_size_current_block];
-                    scrypt_N_1_1_256_sp_generic(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad, GetNfactor(pblock->nTime));
-                    //printf("scrypt thash: %s\n", thash.ToString().c_str());
-                    //printf("hashTarget: %s\n", hashTarget.ToString().c_str());
-                }
-
+                LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, 330, 256);
                 if (thash <= hashTarget)
                 {
                     // Found a solution
-                    printf("Found a solution. Hash: %s", thash.GetHex().c_str());
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
                     CheckWork(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -6478,7 +6161,7 @@ void static ZcoinMiner(CWallet *pwallet)
                         nHPSTimerStart = GetTimeMillis();
                         nHashCounter = 0;
                         static int64 nLogTime;
-                        if (GetTime() - nLogTime > 30 * 60)
+                        if (GetTime() - nLogTime > 2 * 60)
                         {
                             nLogTime = GetTime();
                             printf("hashmeter %f hash/s\n", dHashesPerSec);
@@ -6511,14 +6194,13 @@ void static ZcoinMiner(CWallet *pwallet)
     } }
     catch (boost::thread_interrupted)
     {
-        printf("ZcoinMiner terminated\n");
+        printf("HexxcoinMiner terminated\n");
         throw;
     }
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
 {
-
     static boost::thread_group* minerThreads = NULL;
 
     int nThreads = GetArg("-genproclimit", -1);
@@ -6537,8 +6219,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&ZcoinMiner, pwallet));
-
+        minerThreads->create_thread(boost::bind(&HexxcoinMiner, pwallet));
 }
 
 
