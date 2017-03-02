@@ -4478,7 +4478,7 @@ void static ProcessGetData(CNode* pfrom)
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
             {
-                bool send = true;
+                bool send = false;
                 map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
                 pfrom->nBlocksRequested++;
                 if (mi != mapBlockIndex.end())
@@ -4491,11 +4491,11 @@ void static ProcessGetData(CNode* pfrom)
                        if (!((*mi).second)->IsInMainChain())
                        {
                          printf("ProcessGetData(): ignoring request for old block that isn't in the main chain\n");
-                         send = false;
+                         send = true;
                        }
                     }
                 } else {
-                    send = false;
+                    send = true;
                 }
                 if (send)
                 {
