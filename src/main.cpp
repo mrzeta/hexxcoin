@@ -2100,7 +2100,6 @@ CBlockIndex* FindBlockByHeight(int nHeight)
 
 bool CBlock::ReadFromDisk(const CBlockIndex* pindex)
 {
-    LastHeight = pindex->nHeight - 1;
     if (!ReadFromDisk(pindex->GetBlockPos()))
         return false;
     if (GetHash() != pindex->GetBlockHash())
@@ -2410,7 +2409,7 @@ bool ConnectBestBlock(CValidationState &state) {
 void CBlockHeader::UpdateTime(const CBlockIndex* pindexPrev)
 {
     nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
-    LastHeight = pindexPrev->nHeight;
+
 
     // Updating time can change work required on testnet:
     if (fTestNet)
@@ -2717,7 +2716,7 @@ void ThreadScriptCheck() {
 
 bool CBlock::ConnectBlock(CValidationState &state, CBlockIndex* pindex, CCoinsViewCache &view, bool fJustCheck)
 {
-    LastHeight = pindex->nHeight;
+
 
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(state, pindex->nHeight, !fJustCheck, !fJustCheck, false))
@@ -3352,7 +3351,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
 bool CBlockHeader::CheckProofOfWork(int nHeight) const
 {
         // Check if proof of work marches claimed amount
-        uint256 phash = GetPoWHash(nHeight);
+        uint256 phash = GetPoWHash();
         if (phash == 0)
             return error("CheckProofOfWork() : Out of memory - 2");
         if (!::CheckProofOfWork(phash, nBits))
@@ -3564,7 +3563,7 @@ bool CBlock::AcceptBlock(CValidationState &state, CDiskBlockPos *dbp)
             return state.DoS(10, error("AcceptBlock() : prev block not found"));
         pindexPrev = (*mi).second;
         nHeight = pindexPrev->nHeight+1;
-        LastHeight = pindexPrev->nHeight;
+
 
         // Check proof of work
         if (nBits != GetNextWorkRequired(pindexPrev, this))
@@ -5910,7 +5909,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->LastHeight = pindexPrev->nHeight;
         pblock->UpdateTime(pindexPrev);
         pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock);
         pblock->nNonce         = 0;
@@ -6017,7 +6015,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         nHeight = pindexPrev->nHeight+1;
     }
 
-    uint256 hash = pblock->GetPoWHash(nHeight);
+    uint256 hash = pblock->GetPoWHash();
     if (hash == 0)
         return error("CheckWork() : Out of memory");
 

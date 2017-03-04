@@ -1293,7 +1293,6 @@ class CBlockHeader
 public:
     // header
     static const int CURRENT_VERSION=2;
-    int LastHeight;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -1317,7 +1316,7 @@ public:
         READWRITE(nNonce);
     )
 	
-    uint256 GetPoWHash(int height) const
+    uint256 GetPoWHash() const
     {
         uint256 thash;
         LYRA2(BEGIN(thash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, 330, 256);
@@ -1499,7 +1498,7 @@ public:
         }
 
         // Check the header
-        if (!::CheckProofOfWork(GetPoWHash(LastHeight + 1), nBits))
+        if (!::CheckProofOfWork(GetPoWHash(), nBits))
             return error("CBlock::ReadFromDisk() : errors in block header");
 
         return true;
@@ -1512,7 +1511,7 @@ public:
         printf("CBlock(hash=%s, input=%s, PoW=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%" PRIszu")\n",
             GetHash().ToString().c_str(),
             HexStr(BEGIN(nVersion),BEGIN(nVersion)+80,false).c_str(),
-            GetPoWHash(LastHeight + 1).ToString().c_str(),
+            GetPoWHash().ToString().c_str(),
             nVersion,
             hashPrevBlock.ToString().c_str(),
             hashMerkleRoot.ToString().c_str(),
