@@ -6118,11 +6118,11 @@ void static HexxcoinMiner(CWallet *pwallet)
         //
         int64 nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        while (true)
+        while(true)
         {
             unsigned int nHashesDone = 0;
             uint256 thash;
-            while (true)
+            while(true)
             {
                 LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, 330, 256);
                 if (thash <= hashTarget)
