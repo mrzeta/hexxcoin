@@ -12,7 +12,7 @@ https://en.wikipedia.org/wiki/RSA_Factoring_Challenge
 Hexxcoin
 ----------------
 * Coin Suffix: HXX
-* Algorithm:lyra2rev2 from Zoin(not Zcoin)
+* Algorithm:lyra2z330
 * Algo params: LYRA2(BEGIN(thash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, 330, 256)
 * Target Spacing: 150 Seconds
 * Retarget: every block
@@ -20,7 +20,7 @@ Hexxcoin
 * Maturity: 120 Blocks
 * Blocks: ~576 per day
 * Total Coins: 9,999,999 HXX
-* Min TX Fee: 0.0001 HXX
+* Min TX Fee: 0.001 HXX
 * Block Size: 4MB
 
 Reward table
@@ -40,7 +40,7 @@ Net Parameters
 * P2P Port=29100
 * RPC Port=29200
 * Client core=0.8.7
-* Clien name=hexx.exe
+* Client name=hexx.exe
 * Conf file=hexx.conf
 
 Installation folder
@@ -98,7 +98,7 @@ update and install dependencies:
 build Hexxcoin-qt from git:
 
     $ git clone https://github.com/hexxcointakeover/hexxcoin
-    $ cd hexxcoin && qmake -qt=qt4 "RELEASE=1" Hexxcoin-qt.pro && make
+    $ cd hexxcoin && qmake -qt=qt4 Hexxcoin-qt.pro && make
  
 running the Hexx Qt wallet:
 
@@ -114,7 +114,7 @@ update and install dependencies:
 build Hexxcoin-qt from git:
 
     $ git clone https://github.com/hexxcointakeover/hexxcoin
-    $ cd hexxcoin && qmake -qt=qt5 "RELEASE=1" Hexxcoin-qt.pro && make
+    $ cd hexxcoin && qmake -qt=qt5 Hexxcoin-qt.pro && make
  
 running the Hexx Qt wallet:
 
